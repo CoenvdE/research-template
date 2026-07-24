@@ -1,7 +1,9 @@
 # research-template
 
 A PyTorch Lightning template for research that is fast to iterate on and hard to
-fool yourself with. Ships with correctness guardrails (the tests top labs are
+fool yourself with. The full story behind it is in
+[the blog post](https://coenvde.github.io/blogs/research-template/index.html),
+whose source of truth lives here as [BLOG.md](BLOG.md). Ships with correctness guardrails (the tests top labs are
 paranoid about), performance callbacks (is the dataloader the bottleneck? what's
 my MFU?), and a Claude-collaborative workflow (living docs kept honest by an
 anti-drift hook).
