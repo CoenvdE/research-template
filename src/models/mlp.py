@@ -41,13 +41,14 @@ class TemplateModule(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         loss = self.loss_fn(self(x), y)
-        self.log("train/loss", loss, prog_bar=True)
+        # per-step value stays rank-local (cheap); the epoch aggregate syncs across ranks
+        self.log("train/loss", loss, prog_bar=True, on_step=True, on_epoch=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
         loss = self.loss_fn(self(x), y)
-        self.log("val/loss", loss, prog_bar=True)
+        self.log("val/loss", loss, prog_bar=True, sync_dist=True)
         return loss
 
     def configure_optimizers(self):

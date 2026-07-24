@@ -5,8 +5,8 @@
 # - Keep strategy=ddp with find_unused_parameters=False (the default): the
 #   unused-params test guarantees the graph is fully connected, which is what
 #   makes that fast path valid.
-# - Metrics logged with sync_dist are averaged across ranks; callbacks here
-#   log rank-zero only, which is fine for monitoring.
+# - train/loss and val/loss sync across ranks (sync_dist=True in the model);
+#   the monitoring callbacks log rank-zero only, which is fine for diagnostics.
 trainer:
   accelerator: gpu
   devices: 4

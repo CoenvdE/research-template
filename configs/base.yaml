@@ -26,7 +26,7 @@ data:
 trainer:
   max_epochs: 5
   accelerator: auto
-  precision: 32           # bf16-mixed on real GPUs
+  precision: bf16-mixed   # fp32 master weights, bf16 math; set 32 only for exact-precision debugging
   log_every_n_steps: 10
   default_root_dir: outputs
   logger:
