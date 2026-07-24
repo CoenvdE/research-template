@@ -1,5 +1,6 @@
-"""The degrees-instead-of-radians class of bug, caught two ways: a static
-transform check and the runtime InputStatsGuard."""
+"""Data-contract checks: the degrees-instead-of-radians class of bug and its
+physics-simulation cousins (raw Pascals where standardized values were expected,
+out-of-bounds concentrations), caught statically and by the runtime guard."""
 
 import math
 
@@ -7,11 +8,38 @@ import pytest
 import torch
 
 from src.callbacks import InputStatsGuard
-from src.utils.checks import assert_radians
+from src.utils.checks import (
+    assert_in_range,
+    assert_radians,
+    assert_standardized,
+)
 
 
 def test_radians_pass():
     assert_radians(torch.linspace(-math.pi, math.pi, 10))
+
+
+def test_standardized_field_passes():
+    torch.manual_seed(0)
+    assert_standardized(torch.randn(1024), name="u_velocity")
+
+
+def test_raw_pascals_fail_standardized_check():
+    # Sea-level pressure fed raw (~1e5 Pa) instead of standardized.
+    raw_pressure = 101325.0 + 500.0 * torch.randn(1024)
+    with pytest.raises(ValueError, match="standardized"):
+        assert_standardized(raw_pressure, name="mslp")
+
+
+def test_concentration_in_bounds():
+    assert_in_range(torch.rand(256), 0.0, 1.0, name="sea_ice_concentration")
+
+
+def test_kelvin_vs_celsius_caught():
+    # Surface temperature in Celsius sneaking into a pipeline expecting Kelvin.
+    celsius = torch.tensor([15.0, 22.5, -5.0])
+    with pytest.raises(ValueError, match="physical range"):
+        assert_in_range(celsius, 180.0, 340.0, name="t2m_kelvin")
 
 
 def test_degrees_fail():
