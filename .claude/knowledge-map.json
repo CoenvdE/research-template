@@ -1,0 +1,30 @@
+{
+  "_comment": "Drift map read by .claude/hooks/knowledge-drift.sh (PostToolUse) and .claude/skills/audit-docs/audit.sh. When an edited file_path matches `match` (regex), the hook nudges to re-check `doc`.",
+  "mappings": [
+    {
+      "match": "src/data/",
+      "doc": "docs/DATASETS.md",
+      "nudge": "Data code changed: check docs/DATASETS.md still matches (sources, shapes, splits, variables, preprocessing) and that tests/test_data_splits.py metadata still applies."
+    },
+    {
+      "match": "src/(models|schedulers|callbacks)/|configs/",
+      "doc": "CLAUDE.md",
+      "nudge": "Model/scheduler/callback/config surface changed: check CLAUDE.md conventions and README feature list still match, and that the guardrail tests cover the change."
+    },
+    {
+      "match": "src/train\\.py|\\.github/workflows/",
+      "doc": "README.md",
+      "nudge": "Entrypoint or CI changed: check the README quickstart and CI section still match."
+    },
+    {
+      "match": "outputs/.*\\.(json|csv)$|eval",
+      "doc": "EXPERIMENTS.md",
+      "nudge": "Eval outputs written: record the result as a one-line DONE entry in EXPERIMENTS.md (wandb link + conclusion) and clear the TODO row."
+    },
+    {
+      "match": "/memory/[^/]+\\.md$",
+      "doc": "CLAUDE.md or a .claude/skills/* skill",
+      "nudge": "You wrote a memory. If this fact is shareable and non-secret, promote it to CLAUDE.md or a skill; keep secrets/IDs/personal notes in memory only."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# Enable wandb logging. For a NEW run:
+#   uv run python -m src.train fit --config configs/base.yaml --config configs/experiment/wandb.yaml
+# To RESUME the same wandb run after a crash/preemption, pass the persisted id
+# (see src/utils/provenance.py get_or_create_wandb_id and README "Resume"):
+#   --trainer.logger.init_args.id <id> --trainer.logger.init_args.resume must
+trainer:
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      project: research-template
+      save_dir: outputs
+      log_model: false

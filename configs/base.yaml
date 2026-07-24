@@ -1,0 +1,58 @@
+# Base config. Experiments override this with small files in configs/experiment/
+# (never copy-and-edit this file; that's how config sprawl starts).
+seed_everything: 0
+
+model:
+  in_dim: 8
+  hidden_dim: 64
+  out_dim: 4
+  lr: 1.0e-3
+  weight_decay: 0.0
+  scheduler: wsd          # wsd | cosine | null
+  warmup_frac: 0.05
+  decay_frac: 0.2
+  min_lr_ratio: 0.0
+  scheduler_interval: step  # step | epoch
+
+data:
+  n_train: 512
+  n_val: 128
+  in_dim: 8
+  out_dim: 4
+  batch_size: 64
+  num_workers: 0
+  seed: 0
+
+trainer:
+  max_epochs: 5
+  accelerator: auto
+  precision: 32           # bf16-mixed on real GPUs
+  log_every_n_steps: 10
+  default_root_dir: outputs
+  logger:
+    class_path: lightning.pytorch.loggers.CSVLogger
+    init_args:
+      save_dir: outputs
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.ModelCheckpoint
+      init_args:
+        save_last: true
+        save_top_k: 1
+        monitor: val/loss
+        every_n_epochs: 1
+    - class_path: src.callbacks.ProvenanceCallback
+    - class_path: src.callbacks.FlopsParamsCallback
+    - class_path: src.callbacks.TimingCallback
+      init_args: {log_every_n_steps: 20}
+    - class_path: src.callbacks.ThroughputCallback
+      init_args: {log_every_n_steps: 20}   # set peak_flops_per_sec for MFU
+    - class_path: src.callbacks.InputStatsGuard
+      init_args: {every_n_steps: 100, absmax_limit: 1000.0, mode: raise}
+    - class_path: src.callbacks.GradNormCallback
+      init_args: {every_n_steps: 20}
+    - class_path: src.callbacks.ActivationMonitor
+      init_args: {every_n_steps: 100}
+    - class_path: src.callbacks.VisualizationCallback
+      init_args: {every_n_epochs: 1}
+    # - class_path: src.callbacks.EMACallback
+    #   init_args: {decay: 0.999}

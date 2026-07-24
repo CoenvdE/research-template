@@ -1,0 +1,21 @@
+# outputs & experiment artifacts
+outputs/
+lightning_logs/
+wandb/
+*.ckpt
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# os / editor
+.DS_Store
+.idea/
+.vscode/
+
+# local claude state
+.claude/settings.local.json
