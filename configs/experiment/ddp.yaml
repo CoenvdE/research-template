@@ -1,0 +1,14 @@
+# Multi-GPU on one node. Lightning launches the processes; no torchrun needed:
+#   uv run python -m src.train fit --config configs/base.yaml --config configs/experiment/ddp.yaml
+# Notes:
+# - Effective batch size = data.batch_size x devices; rescale lr accordingly.
+# - Keep strategy=ddp with find_unused_parameters=False (the default): the
+#   unused-params test guarantees the graph is fully connected, which is what
+#   makes that fast path valid.
+# - Metrics logged with sync_dist are averaged across ranks; callbacks here
+#   log rank-zero only, which is fine for monitoring.
+trainer:
+  accelerator: gpu
+  devices: 4
+  strategy: ddp
+  precision: bf16-mixed

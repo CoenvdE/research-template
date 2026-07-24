@@ -51,6 +51,17 @@ uv run python -m src.train fit --config configs/base.yaml --config configs/exper
 Never copy-and-edit the base; hyperparameters belong in overrides and in wandb,
 not in filenames.
 
+## Beyond fit
+
+- **Eval**: `uv run python -m src.eval --config configs/base.yaml --ckpt_path outputs/last.ckpt`
+  validates a checkpoint and writes `outputs/eval/metrics.json` (which the
+  anti-drift hook watches, nudging an EXPERIMENTS.md entry). `validate`,
+  `test`, and `predict` subcommands also work directly on `src.train`.
+- **Multi-GPU**: stack `configs/experiment/ddp.yaml` (Lightning launches the
+  processes; see the file for batch-size and unused-params notes).
+- **Sweeps**: `configs/sweep.yaml` is a ready wandb sweep spec; LightningCLI
+  accepts the agent's `--model.lr=...` flags natively.
+
 ## Resume (training + wandb, crash-safe)
 
 1. `ModelCheckpoint(save_last=True)` is in the base config; `last.ckpt` always exists.

@@ -44,6 +44,25 @@ def assert_in_range(
         )
 
 
+def assert_absmax(t: torch.Tensor, limit: float = 100.0, name: str = "tensor") -> None:
+    """No extreme magnitudes entering the model.
+
+    Large values (raw Pascals, unnormalized elevations, degree coordinates)
+    produce huge activations and gradients: loss spikes, NaNs, or silently
+    broken training. Post-normalization inputs should live within a few sigma;
+    default limit 100 is deliberately generous. The runtime InputStatsGuard
+    applies the same check to live batches; this is the static variant for
+    transforms and tests.
+    """
+    assert_finite(t, name)
+    absmax = t.abs().max().item()
+    if absmax > limit:
+        raise ValueError(
+            f"{name}: |max| = {absmax:.4g} > {limit:.4g}. Values this large will "
+            "destabilize gradients: check units and normalization."
+        )
+
+
 def assert_standardized(
     t: torch.Tensor,
     name: str = "tensor",

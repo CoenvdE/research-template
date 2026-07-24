@@ -9,6 +9,7 @@ import torch
 
 from src.callbacks import InputStatsGuard
 from src.utils.checks import (
+    assert_absmax,
     assert_in_range,
     assert_radians,
     assert_standardized,
@@ -29,6 +30,18 @@ def test_raw_pascals_fail_standardized_check():
     raw_pressure = 101325.0 + 500.0 * torch.randn(1024)
     with pytest.raises(ValueError, match="standardized"):
         assert_standardized(raw_pressure, name="mslp")
+
+
+def test_absmax_passes_normalized():
+    torch.manual_seed(0)
+    assert_absmax(torch.randn(1024), limit=100.0, name="normalized_field")
+
+
+def test_absmax_catches_gradient_bombs():
+    # Unnormalized elevation in meters entering a model expecting ~N(0, 1).
+    elevation_m = torch.tensor([0.0, 1250.0, 8848.0])
+    with pytest.raises(ValueError, match="destabilize gradients"):
+        assert_absmax(elevation_m, limit=100.0, name="elevation")
 
 
 def test_concentration_in_bounds():

@@ -30,6 +30,28 @@ see README for the full tour.
 - The synthetic dataset stays in the repo even after real data arrives; it is
   what keeps tests runnable everywhere.
 
+## Adapting this template to a new project
+
+Three tiers; when in doubt, keep.
+
+- **KEEP always** (the point of the template): the guardrail tests and the rule
+  that they get *ported* to the real model, never exempted; the synthetic
+  dataset (it is what keeps tests runnable everywhere and CI green); config
+  discipline (base + overrides); EXPERIMENTS.md flow; anti-drift wiring;
+  provenance and resume rules.
+- **REPLACE per project**: `src/models/mlp.py` and `src/data/` with the real
+  model and data (added *next to* the synthetic pair, not instead of it);
+  guard thresholds and `src/utils/checks.py` contracts tightened to the real
+  data's units and normalization; `.claude/knowledge-map.json` regexes;
+  DATASETS.md content; EXPERIMENTS.md rows.
+- **DELETE if unused**: `tests/equivariance/` when no symmetry is claimed;
+  `EMACallback` if not wanted; `configs/sweep.yaml` and
+  `configs/experiment/ddp.yaml` until needed (they are templates-in-waiting,
+  costless while unused).
+
+Improvements made here that are project-agnostic get ported back to the
+research-template repo in a separate commit.
+
 ## Maintaining this knowledge
 
 The anti-drift system keeps docs honest: `.claude/hooks/knowledge-drift.sh`
