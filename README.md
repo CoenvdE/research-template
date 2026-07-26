@@ -1,12 +1,14 @@
 # research-template
 
 A PyTorch Lightning template for research that is fast to iterate on and hard to
-fool yourself with. The full story behind it is in
-[the blog post](https://coenvde.github.io/blogs/research-template/index.html),
-whose source of truth lives here as [BLOG.md](BLOG.md). Ships with correctness guardrails (the tests top labs are
+fool yourself with. Ships with correctness guardrails (the tests top labs are
 paranoid about), performance callbacks (is the dataloader the bottleneck? what's
 my MFU?), and a Claude-collaborative workflow (living docs kept honest by an
 anti-drift hook).
+
+I wrote up the reasoning behind it in [a blog post](https://coenvde.github.io/blogs/research-template/index.html).
+The version I actually edit is [BLOG.md](BLOG.md) in this repo, so read it here
+if you prefer.
 
 Everything runs CPU-only on a synthetic dataset, so the full test suite works on
 any machine with no data download.
@@ -102,9 +104,24 @@ hook nudges you to update it whenever training/eval code changes.
 
 ## Using this template
 
-Click "Use this template" on GitHub (or `gh repo create my-project --template
-CoenvdE/research-template`), then: rename the project in `pyproject.toml`,
-replace `src/models/mlp.py` and `src/data/synthetic.py` with your model and
-data (keep the synthetic set for smoke tests), tailor `.claude/knowledge-map.json`,
-and fill `docs/DATASETS.md`. With Claude Code, the `new-research-project` skill
-does this interactively.
+Click "Use this template" on GitHub, or run `gh repo create my-project --template
+CoenvdE/research-template`.
+
+The easiest way to tailor it is to hand it to Claude. Start a session in your new
+clone and say something like:
+
+> Read the README and CLAUDE.md, then set this up for my project. Ask me what you
+> need to know about my model and data.
+
+It should rename the project in `pyproject.toml`, put your goal into README and
+`CLAUDE.md`, clear the example rows out of `EXPERIMENTS.md`, stub the real
+dataset section in `docs/DATASETS.md`, tailor the regexes in
+`.claude/knowledge-map.json` to your layout, and then run `uv run pytest` to
+confirm the suite is still green before the first commit. What it should not do
+is delete the synthetic dataset or exempt anything from the guardrail tests, and
+`CLAUDE.md` tells it as much.
+
+By hand it is the same list: rename in `pyproject.toml`, replace
+`src/models/mlp.py` and `src/data/synthetic.py` with your model and data while
+keeping the synthetic pair for smoke tests, tailor the knowledge map, and fill in
+`docs/DATASETS.md`.
