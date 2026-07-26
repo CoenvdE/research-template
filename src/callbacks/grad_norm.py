@@ -1,6 +1,5 @@
 """Log the total gradient norm (and optionally the largest per-parameter norms).
-Spikes here are the early-warning signal for instability. Port of
-geometric-weather's grad_norm callback."""
+Spikes here are the early-warning signal for instability."""
 
 from lightning.pytorch.callbacks import Callback
 

@@ -22,10 +22,14 @@ proposals a researcher can act on, and honest correctness findings.
    empirically. A confident guess about "the standard convention" is how
    equivariance bugs pass silently, especially on abelian groups where wrong
    handedness coincides with right.
-3. **Every proposal states its effect on the model's claimed invariances.** For
-   each proposal answer: does this preserve the claimed symmetry (and why), break
-   it, or is it unknown and needs derivation first? A proposal that silently
-   breaks equivariance is worse than no proposal. When unsure, say unknown.
+3. **Every proposal states its effect on the model's contracts.** First establish
+   what this model actually claims. Many models claim no symmetry at all, and for
+   those the contracts are things like causal masking, padding and variable-length
+   handling, normalization placement, or checkpoint compatibility: check those and
+   say "no symmetry claimed" rather than inventing one. Where a symmetry *is*
+   claimed (equivariance, invariance, conservation), every proposal must answer:
+   preserves it (and why), breaks it, or unknown and needs derivation first. A
+   proposal that silently breaks a claimed property is worse than no proposal.
 4. **Check what was already tried.** Read `EXPERIMENTS.md` DONE rows before
    proposing anything. Never propose an ablation that has already concluded.
 5. **Validation integrity.** See the section below. This is not negotiable.

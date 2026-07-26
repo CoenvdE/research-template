@@ -62,14 +62,7 @@ def test_overfit_criterion_rejects_a_model_that_cannot_learn(tmp_path):
 
 
 def test_initial_loss_check_rejects_a_badly_scaled_init():
-    """The initial-loss check must discriminate.
-
-    Planted defect: every parameter scaled up 50x, the shape of a bad init or
-    unnormalized inputs. Note what this check does NOT catch, which is worth
-    knowing: rescaling the *targets* moves the measured loss and Var(y) together,
-    so the check is deliberately blind to it. Input scale and init scale are what
-    it sees.
-    """
+    """Planted defect: every parameter scaled 50x, the shape of a bad init."""
     torch.manual_seed(0)
     model = TemplateModule(in_dim=8, hidden_dim=32, out_dim=4)
     with torch.no_grad():
@@ -82,6 +75,41 @@ def test_initial_loss_check_rejects_a_badly_scaled_init():
 
     with pytest.raises(ValueError, match="theoretical"):
         assert_loss_near_theoretical(loss, expected_mse_at_init(y), name="initial MSE")
+
+
+def test_initial_loss_check_rejects_uncentered_targets():
+    """Planted defect: targets left in raw physical units (a Kelvin-like offset).
+
+    A model at init predicts ~0, so its loss is E[y^2] = Var(y) + mean^2. A large
+    offset makes mean^2 dominate and the check fires.
+    """
+    torch.manual_seed(0)
+    model = TemplateModule(in_dim=8, hidden_dim=32, out_dim=4)
+    x = torch.randn(64, 8)
+    y_kelvin = torch.randn(64, 4) + 288.0
+    with torch.no_grad():
+        loss = model.loss_fn(model(x), y_kelvin).item()
+
+    with pytest.raises(ValueError, match="theoretical"):
+        assert_loss_near_theoretical(loss, expected_mse_at_init(y_kelvin), name="initial MSE")
+
+
+def test_initial_loss_check_is_blind_to_centered_rescaling():
+    """The documented blind spot, asserted so it stays documented.
+
+    Scaling *centered* targets moves Var(y) and E[y^2] together, so the ratio
+    stays at 1 and this check cannot see it. That is not a bug to fix here; it is
+    a limit to know, and it is why `assert_standardized` exists separately.
+    """
+    torch.manual_seed(0)
+    model = TemplateModule(in_dim=8, hidden_dim=32, out_dim=4)
+    x = torch.randn(64, 8)
+    y_scaled = 100.0 * torch.randn(64, 4)
+    with torch.no_grad():
+        loss = model.loss_fn(model(x), y_scaled).item()
+
+    # Passes despite wildly unnormalized targets: the known limitation.
+    assert_loss_near_theoretical(loss, expected_mse_at_init(y_scaled), name="initial MSE")
 
 
 def _train_briefly(root, seed: int) -> torch.Tensor:

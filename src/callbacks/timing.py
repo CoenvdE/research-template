@@ -1,8 +1,7 @@
 """Split step time into dataloader-wait vs forward vs backward.
 
 If `time/data_frac` is high, the dataloader is the bottleneck (raise num_workers,
-prefetch, or move preprocessing offline). Generalizes geometric-weather's
-timing_bottleneck callback.
+prefetch, or move preprocessing offline).
 """
 
 import time

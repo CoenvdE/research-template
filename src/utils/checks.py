@@ -102,11 +102,18 @@ def assert_loss_near_theoretical(
 ) -> None:
     """Assert a loss sits within `factor` of its theoretical know-nothing value.
 
-    Well above means a badly scaled init or unnormalized *inputs*. Well below, at
-    step zero, means the model already has information it should not: suspect
-    leakage. Rescaling the targets moves the loss and Var(y) together, so this
-    check is deliberately blind to target scale (see
-    tests/test_guardrails_detect_bugs.py).
+    A model at init outputs near zero, so its loss is E[y^2] = Var(y) + mean(y)^2,
+    while the theoretical value is Var(y). What that does and does not detect:
+
+    - **Caught**: targets with a large offset (Kelvin, Pascals, raw counts), where
+      mean^2 dominates and the ratio explodes. Also a badly scaled init, and
+      unnormalized inputs, both of which inflate the model's outputs.
+    - **Not caught**: rescaling *centered* targets, since Var(y) and E[y^2] grow
+      together and the ratio stays at 1.
+    - **Suspicious when far below**: at step zero the model should not already
+      have information. Suspect leakage.
+
+    See tests/test_guardrails_detect_bugs.py for both cases proven.
     """
     if not (expected / factor <= loss <= expected * factor):
         raise ValueError(
