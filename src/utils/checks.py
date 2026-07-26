@@ -86,6 +86,35 @@ def assert_standardized(
         )
 
 
+def expected_mse_at_init(y: torch.Tensor) -> float:
+    """Theoretical MSE of a model that knows nothing.
+
+    The best constant prediction is the target mean, and the error it incurs is
+    by definition Var(y). A freshly initialized net outputs near zero, which for
+    standardized targets is near the mean, so its initial MSE should land here.
+    (Classification analog: cross-entropy at init is ln(num_classes).)
+    """
+    return y.float().var(unbiased=False).item()
+
+
+def assert_loss_near_theoretical(
+    loss: float, expected: float, factor: float = 5.0, name: str = "initial loss"
+) -> None:
+    """Assert a loss sits within `factor` of its theoretical know-nothing value.
+
+    Well above means a badly scaled init or unnormalized *inputs*. Well below, at
+    step zero, means the model already has information it should not: suspect
+    leakage. Rescaling the targets moves the loss and Var(y) together, so this
+    check is deliberately blind to target scale (see
+    tests/test_guardrails_detect_bugs.py).
+    """
+    if not (expected / factor <= loss <= expected * factor):
+        raise ValueError(
+            f"{name} {loss:.4g} is not within {factor}x of the theoretical "
+            f"value {expected:.4g}: check target normalization, init, or leakage"
+        )
+
+
 def find_unused_parameters(pl_module, batch) -> list[str]:
     """Run one training step + backward; return parameters that received no grad.
 

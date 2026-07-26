@@ -31,6 +31,22 @@ Two design rules shaped it. First, **guardrails are tests and callbacks, not dis
 
 **Config smoke test.** One `fast_dev_run` batch through the *committed* config, every callback included. The moment a rename breaks a `class_path`, CI goes red instead of your next cluster job.
 
+### Tests of the tests
+
+Here is the failure mode that worries me more than any bug: a test suite that is green because it cannot fail. It happens quietly and in ordinary ways. An expected value gets recorded from the code under test, so the test asserts the bug. A tolerance gets loosened until things pass. A property gets checked that a model ignoring its inputs would satisfy anyway. Nothing announces itself, and afterwards you trust the model *more* than before, which is the expensive part.
+
+This risk gets sharper when an agent writes the tests, because "make the tests pass" and "check the model is correct" are different goals that look identical from the outside, and the first one is much easier.
+
+So the template treats it as a first-class concern, in three layers.
+
+**A stated policy**, in CLAUDE.md and in the research rules, so it loads into every session that touches this code. Never weaken a test to make it pass: a failing test is a finding to report, not a number to adjust. Expected values come from theory, a reference implementation, or a property that must hold, never from recording current output. Tolerances get derived from dtype precision, not tuned until green. Never assume a convention you did not read, because a wrong assumption that produces a pass is invisible.
+
+**Paired negative controls.** Every guardrail ships with a demonstration that it can fail. The equivariance examples pair each symmetry with a transformation the function must *not* respect. The unused-parameter test plants a layer that forward never calls. The input contracts plant degrees, raw Pascals, and Celsius.
+
+**A meta-test that plants defects**, `tests/test_guardrails_detect_bugs.py`, which asserts the suite goes red when it should. It runs a model with a learning rate of zero and asserts that the overfit-one-batch criterion is *not* satisfied, proving that criterion discriminates. It scales an init by 50x and asserts the initial-loss check raises. And it verifies the two premises the resume test silently depends on: that fixed seeds give bit-identical results, and that genuinely different runs do not compare equal at the tolerance used, because otherwise the resume guarantee is unfalsifiable.
+
+That last one is the pattern worth stealing. Ask of any check: what defect would this catch, and would it still pass if the model were subtly wrong? If the answer is uncomfortable, the check is decoration.
+
 ### The callbacks
 
 - **Timing**: splits step time into dataloader-wait vs forward vs backward. One logged number, `time/data_frac`, answers the eternal question "is my dataloader the bottleneck?"
@@ -57,6 +73,7 @@ The template is also configured as a collaborator-ready workspace for Claude Cod
 - **An anti-drift map**: editing data code nudges the agent to update `docs/DATASETS.md` in the same session; writing eval outputs nudges a one-line entry in the experiment ledger.
 - **EXPERIMENTS.md as the human-agent interface**: a TODO table (hypothesis, config, status) and a DONE table (run, wandb link, key metric, one-line conclusion). Plans go in as TODO rows and come out as DONE rows.
 - **A scaffolding skill**: "start a new research project called X" clones the template from GitHub, tailors it, and verifies the suite is green before the first commit. Improvements made in projects get ported back to the template, so it compounds instead of forking.
+- **A `model-sparring` agent**: the design review a good lab runs before anyone burns GPU hours. It reads the model code, the measured metrics and the experiment ledger, then reports correctness findings, a cost profile, and ranked proposals. Its rules are what separate it from a listicle generator: no suggestion without a measurement or a code citation, every proposal must state whether it preserves the model's claimed invariances (half the fashionable tricks break equivariance, and a proposal that quietly does is worse than no proposal), no proposing an ablation that `EXPERIMENTS.md` already concluded, and it may write tests and TODO rows but never the model itself. It proposes; you decide.
 
 ### Closing
 

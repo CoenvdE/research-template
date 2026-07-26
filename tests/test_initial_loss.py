@@ -1,10 +1,16 @@
-"""Loss at init should sit near its theoretical value. For MSE on ~N(0,1) targets
-with a near-zero-output init, that's ~Var(y) ~= 1. Far off means broken
-normalization or a bad init."""
+"""Loss at init should sit near its theoretical know-nothing value: Var(y) for
+MSE, which is ~1 for standardized targets. Far above means broken normalization
+or init; far below at step zero means suspect leakage.
+
+The expected value is derived from the targets, never recorded from what the
+model happens to produce. See tests/test_guardrails_detect_bugs.py for the proof
+that this check can fail.
+"""
 
 import torch
 
 from src.models.mlp import TemplateModule
+from src.utils.checks import assert_loss_near_theoretical, expected_mse_at_init
 
 
 def test_initial_loss_near_theoretical(datamodule):
@@ -13,6 +19,4 @@ def test_initial_loss_near_theoretical(datamodule):
     x, y = next(iter(datamodule.train_dataloader()))
     with torch.no_grad():
         loss = model.loss_fn(model(x), y).item()
-    assert 0.2 < loss < 5.0, (
-        f"initial MSE {loss:.3f} far from ~Var(y)~=1: check target normalization / init"
-    )
+    assert_loss_near_theoretical(loss, expected_mse_at_init(y), name="initial MSE")

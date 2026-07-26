@@ -38,8 +38,21 @@ uv run python -m src.train fit --config configs/base.yaml
 **Tests** (`tests/`): overfit-one-batch, initial-loss sanity,
 interrupt-and-resume equivalence (weights + EMA + LR), unused-parameter
 detection, data-leakage asserts (overlap + temporal gap), dataloader
-determinism (seed + num_workers), input-range guards, scheduler shapes, and a
-generic equivariance harness with examples.
+determinism (seed + num_workers), input-range guards, scheduler shapes, a
+config smoke test, and a generic equivariance harness with examples.
+
+**Tests of the tests** (`tests/test_guardrails_detect_bugs.py`): a suite that is
+green because it *cannot fail* is worse than no suite. Every guardrail here is
+paired with a planted defect it must catch, and CLAUDE.md states the validation
+integrity rules: never weaken a test to reach green, derive expected values from
+theory or a reference rather than from current output, and ship every new check
+with a proof that it can fail.
+
+**Agent** (`.claude/agents/model-sparring.md`): a design-review sparring partner
+for model work. Reads the code, the metrics and `EXPERIMENTS.md`, then reports
+correctness findings, a cost profile, and ranked proposals, each with a verdict
+on whether it preserves the model's claimed invariances and a decisive ablation.
+It writes tests and TODO rows, never the model.
 
 ## Config discipline
 

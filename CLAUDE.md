@@ -30,6 +30,38 @@ see README for the full tour.
 - The synthetic dataset stays in the repo even after real data arrives; it is
   what keeps tests runnable everywhere.
 
+## Validation integrity (non-negotiable)
+
+Tests exist to detect defects, not to be green. When writing or fixing tests,
+here or anywhere in a project based on this template:
+
+- **Never weaken a test to make it pass.** A failing test is a finding to report,
+  not a number to adjust. Do not loosen a tolerance, narrow an input range, add
+  `skip`/`xfail`, wrap an assertion in try/except, or soften an assertion in
+  order to reach green. Only the researcher decides whether the test or the code
+  is wrong.
+- **Expectations come from theory, a reference implementation, or a required
+  property. Never from current output.** Legitimate: a closed-form value (MSE at
+  init is Var(y), cross-entropy is ln(C)), an independent implementation, a
+  property that must hold (equivariance, invariance, conservation), a physical
+  bound. Recording what the model currently produces and asserting it keeps
+  producing that is a *regression* test: legitimate only from an independently
+  verified state, and it must be labeled as regression, not correctness.
+- **Every new guardrail ships with a proof that it can fail**, either a planted
+  defect it must catch or a written reason no control is possible. See
+  `tests/test_guardrails_detect_bugs.py`; add new sensitivity proofs there or
+  beside the test they belong to.
+- **Tolerances are derived, not tuned.** Justify atol/rtol from dtype precision
+  and accumulated operations; prefer float64 for property tests. A test that only
+  passes at a loose tolerance is a finding.
+- **Never assume a convention you did not read** (group action side, index order,
+  channel layout, units). Read it from the code or detect it empirically. A wrong
+  assumption that produces a pass is invisible.
+
+The test to apply before committing any test: name the defect it would catch, and
+say whether it would still pass if the model were subtly wrong. If you cannot,
+delete it.
+
 ## Adapting this template to a new project
 
 Three tiers; when in doubt, keep.
