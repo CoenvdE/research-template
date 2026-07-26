@@ -90,3 +90,9 @@ The anti-drift system keeps docs honest: `.claude/hooks/knowledge-drift.sh`
 (wired in `.claude/settings.json`) nudges when code covered by a doc changes,
 per `.claude/knowledge-map.json`. Audit staleness with
 `bash .claude/skills/audit-docs/audit.sh`.
+
+**Keep the map current.** It is not a one-time config. When a doc or skill starts
+describing a new area of code, add a mapping for it in
+`.claude/knowledge-map.json`; when a fact moves to a different doc, update that
+entry's `doc` field so the nudge points at where the fact now lives. A map that
+stops growing quietly stops catching drift.
